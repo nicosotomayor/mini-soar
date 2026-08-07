@@ -1,0 +1,90 @@
+[
+  {
+    "id": "ALT-1001",
+    "timestamp": "2026-08-05T14:22:10Z",
+    "alert_type": "Brute Force SSH",
+    "source_ip": "185.220.101.45",
+    "dest_ip": "10.0.4.12",
+    "severity": "high",
+    "asset_criticality": "critical",
+    "ioc": "185.220.101.45",
+    "description": "Multiples intentos fallidos de login SSH seguidos de un login exitoso."
+  },
+  {
+    "id": "ALT-1002",
+    "timestamp": "2026-08-05T15:03:44Z",
+    "alert_type": "Phishing Email",
+    "source_ip": "203.0.113.55",
+    "dest_ip": "10.0.2.30",
+    "severity": "medium",
+    "asset_criticality": "medium",
+    "ioc": "malicious-invoice.exe",
+    "description": "Adjunto ejecutable detectado en correo con asunto de factura urgente."
+  },
+  {
+    "id": "ALT-1003",
+    "timestamp": "2026-08-05T15:40:02Z",
+    "alert_type": "Port Scan",
+    "source_ip": "45.83.64.12",
+    "dest_ip": "10.0.1.5",
+    "severity": "low",
+    "asset_criticality": "low",
+    "ioc": "45.83.64.12",
+    "description": "Escaneo secuencial de puertos detectado desde una IP externa."
+  },
+  {
+    "id": "ALT-1004",
+    "timestamp": "2026-08-05T16:12:37Z",
+    "alert_type": "C2 Beaconing",
+    "source_ip": "10.0.5.20",
+    "dest_ip": "91.219.236.18",
+    "severity": "critical",
+    "asset_criticality": "critical",
+    "ioc": "91.219.236.18",
+    "description": "Trafico periodico saliente hacia dominio asociado a infraestructura de comando y control."
+  },
+  {
+    "id": "ALT-1005",
+    "timestamp": "2026-08-05T16:45:19Z",
+    "alert_type": "Malware Detected",
+    "source_ip": "10.0.3.8",
+    "dest_ip": "N/A",
+    "severity": "high",
+    "asset_criticality": "medium",
+    "ioc": "d41d8cd98f00b204e9800998ecf8427e",
+    "description": "Antivirus corporativo detecto y puso en cuarentena un archivo malicioso."
+  },
+  {
+    "id": "ALT-1006",
+    "timestamp": "2026-08-05T17:02:51Z",
+    "alert_type": "Failed Login",
+    "source_ip": "192.168.1.44",
+    "dest_ip": "10.0.4.12",
+    "severity": "low",
+    "asset_criticality": "medium",
+    "ioc": "192.168.1.44",
+    "description": "Un solo intento fallido de inicio de sesion desde red interna."
+  },
+  {
+    "id": "ALT-1007",
+    "timestamp": "2026-08-05T17:30:08Z",
+    "alert_type": "Data Exfiltration",
+    "source_ip": "10.0.6.15",
+    "dest_ip": "185.220.101.45",
+    "severity": "critical",
+    "asset_criticality": "high",
+    "ioc": "185.220.101.45",
+    "description": "Transferencia inusual de gran volumen de datos hacia una IP externa sospechosa."
+  },
+  {
+    "id": "ALT-1008",
+    "timestamp": "2026-08-05T18:05:23Z",
+    "alert_type": "Suspicious PowerShell",
+    "source_ip": "10.0.2.9",
+    "dest_ip": "N/A",
+    "severity": "medium",
+    "asset_criticality": "low",
+    "ioc": "N/A",
+    "description": "Ejecucion de PowerShell con comandos codificados en base64 detectada en un endpoint."
+  }
+]
