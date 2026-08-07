@@ -2,8 +2,8 @@
 report_generator.py - Generador de informes de incidentes (Etapa 4)
 
 Genera un informe en Markdown para las alertas mas criticas (P1/P2),
-consolidando la triage, las tecnicas MITRE ATT&CK asociadas y el
-veredicto de enriquecimiento del IOC cuando este disponible.
+consolidando la triage, las tecnicas MITRE ATT&CK asociadas y la
+evidencia real del enriquecimiento del IOC cuando esta disponible.
 """
 
 import os
@@ -40,8 +40,8 @@ def build_report(alert, score, priority, action, enrichment=None):
         "",
         "## Triage",
         "",
-        f"- **Prioridad:** {priority}",
-        f"- **Score:** {score}",
+        f"- **Score de triage inicial:** {score}",
+        f"- **Prioridad final:** {priority}",
         f"- **Accion recomendada:** {action}",
         "",
         "## Tecnicas MITRE ATT&CK asociadas",
@@ -50,16 +50,45 @@ def build_report(alert, score, priority, action, enrichment=None):
 
     if techniques:
         for tech in techniques:
-            lines.append(f"- **{tech['id']}** - {tech['name']} (Tactica: {tech['tactic']})")
+            lines.append(
+                f"- **{tech['id']}** - {tech['name']} (Tactica: {tech['tactic']}) "
+                f"| confianza: {tech['confidence']} | evidencia: {tech['evidence']}"
+            )
     else:
         lines.append("- No se identificaron tecnicas asociadas.")
 
     lines += ["", "## Enriquecimiento de IOC", ""]
 
     if enrichment:
-        verdict, _color = enrichment
-        lines.append(f"- **Indicador analizado:** {alert.get('ioc', 'N/A')}")
+        verdict = enrichment.get("verdict")
+        ioc_type = enrichment.get("ioc_type")
+        vt_stats = enrichment.get("vt_stats")
+        abuse_data = enrichment.get("abuse_data")
+        checked_at = enrichment.get("checked_at")
+
+        lines.append(f"- **Indicador analizado:** {enrichment.get('ioc', alert.get('ioc', 'N/A'))} ({ioc_type})")
         lines.append(f"- **Veredicto:** {verdict}")
+        lines.append(f"- **Consultado:** {checked_at}")
+
+        if vt_stats:
+            lines.append(
+                f"- **VirusTotal:** malicioso: {vt_stats.get('malicious', 0)}, "
+                f"sospechoso: {vt_stats.get('suspicious', 0)}"
+            )
+        else:
+            lines.append("- **VirusTotal:** sin datos")
+
+        if ioc_type == "ip":
+            if abuse_data:
+                lines.append(f"- **AbuseIPDB:** confianza de abuso: {abuse_data.get('abuseConfidenceScore', 0)}%")
+            else:
+                lines.append("- **AbuseIPDB:** sin datos")
+
+        if verdict == "SIN DATOS":
+            lines.append(
+                "- **Nota:** no se pudo determinar la reputacion real del IOC "
+                "(sin API keys o sin respuesta). No debe interpretarse como benigno."
+            )
     else:
         lines.append("- No se realizo enriquecimiento de IOC para esta alerta.")
 
@@ -92,11 +121,21 @@ if __name__ == "__main__":
         "asset_criticality": "critical",
         "ioc": "185.220.101.5",
     }
+    sample_enrichment = {
+        "ioc": "185.220.101.5",
+        "ioc_type": "ip",
+        "vt_stats": {"malicious": 12, "suspicious": 3},
+        "abuse_data": {"abuseConfidenceScore": 97},
+        "verdict": "CRITICO",
+        "color": "",
+        "checked_at": datetime.now().strftime("%Y-%m-%d %H:%M UTC"),
+    }
     path = save_report(
         sample_alert,
         score=92,
         priority="P1",
         action="Escalar a Nivel 2 inmediatamente",
-        enrichment=("MALICIOUS", ""),
+        enrichment=sample_enrichment,
     )
     print(f"Informe generado en: {path}")
+ctrl:Home
