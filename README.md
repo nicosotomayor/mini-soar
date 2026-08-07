@@ -1,6 +1,6 @@
 # mini-soar
 
-Pipeline de respuesta a incidentes (SOAR) construido por etapas, pensado para automatizar el trabajo manual de un analista SOC Nivel 1: enriquecer indicadores, priorizar alertas y documentar el resultado.
+Pipeline de respuesta a incidentes (SOAR) construido por etapas, pensado para automatizar el trabajo manual de un analista SOC Nivel 1: enriquecer indicadores, priorizar alertas, mapear tecnicas de ataque y documentar el resultado.
 
 ## Roadmap del proyecto
 
@@ -8,7 +8,7 @@ Etapa 1 (completada): enriquecimiento automatico de IOCs (IPs, dominios, hashes)
 
 Etapa 2 (completada): triage automatico de alertas tipo SIEM, priorizando en base a severidad, criticidad del activo afectado y presencia de IOCs conocidos.
 
-Etapa 3 (pendiente): mapeo automatico a tecnicas MITRE ATT&CK segun el comportamiento observado.
+Etapa 3 (completada): mapeo automatico de cada tipo de alerta a tacticas y tecnicas del framework MITRE ATT&CK.
 
 Etapa 4 (pendiente): generacion automatica de informe de incidente en Markdown o PDF.
 
@@ -19,6 +19,14 @@ El script src/ioc_enrichment.py recibe una o varias IOCs (IP, dominio o hash) y 
 ## Etapa 2: Alert Triage
 
 El script src/alert_triage.py toma un listado de alertas tipo SIEM (por ejemplo data/sample_alerts.json), calcula un puntaje combinando severidad, criticidad del activo afectado y la presencia de un IOC conocido, y clasifica cada alerta en una prioridad de P1 (critica) a P4 (baja), sugiriendo la accion recomendada para el analista.
+
+## Etapa 3: MITRE ATT&CK Mapping
+
+El script src/mitre_mapper.py asocia el tipo de alerta (por ejemplo "C2 Beaconing" o "Suspicious PowerShell") con las tacticas y tecnicas correspondientes del framework MITRE ATT&CK, dando contexto sobre el comportamiento del atacante detras de cada alerta.
+
+## Pipeline completo (main.py)
+
+El archivo main.py, en la raiz del proyecto, orquesta las tres etapas en un solo flujo: carga las alertas, las prioriza, mapea cada una a sus tecnicas MITRE ATT&CK, y enriquece automaticamente el IOC de las alertas con prioridad P1 o P2 contra VirusTotal y AbuseIPDB. El resultado es un reporte consolidado por alerta, listo para que un analista lo revise.
 
 ## Instalacion
 
@@ -37,40 +45,40 @@ export ABUSEIPDB_API_KEY=tu_api_key_de_abuseipdb
 
 ## Uso
 
-Enriquecimiento de IOCs:
+Pipeline completo (recomendado):
+
+python main.py data/sample_alerts.json
+
+Enriquecimiento de IOCs por separado:
 
 python src/ioc_enrichment.py 8.8.8.8 malicious-domain.com 44d88612fea8a8f36de82e1278abb02f
 
-O de forma interactiva:
-
-python src/ioc_enrichment.py
-
-Triage de alertas:
+Triage de alertas por separado:
 
 python src/alert_triage.py data/sample_alerts.json
 
-Si no se indica un archivo, el script usa data/sample_alerts.json por defecto.
+Mapeo MITRE ATT&CK por separado:
+
+python src/mitre_mapper.py "C2 Beaconing"
+
+Si no se indica un archivo de alertas, los scripts usan data/sample_alerts.json por defecto.
 
 ## Ejemplo de salida
 
-IOC Enrichment:
-
-IOC: 8.8.8.8 (tipo: ip)
-VirusTotal -> malicious: 0 | suspicious: 0 | harmless: 68
-AbuseIPDB -> abuse score: 0% | reports: 0 | pais: US
-Veredicto: BAJO
-
-Alert Triage:
+Pipeline completo (main.py):
 
 ALT-1004 - C2 Beaconing
 Severidad: critical | Criticidad del activo: critical
-IOC: 91.219.236.18
-Prioridad: P1 (score 18)
+Prioridad de triage: P1 (score 18)
 Accion recomendada: Escalar de inmediato al equipo de respuesta a incidentes.
+Tecnicas MITRE ATT&CK:
+    [T1071] Application Layer Protocol (Command and Control)
+    [T1571] Non-Standard Port (Command and Control)
+Veredicto de enriquecimiento del IOC: ALTO
 
 ## Por que este proyecto
 
-Este pipeline automatiza el mismo trabajo que documente manualmente en real-phishing-incident-report y trickbot-incident-analysis-ad: tomar un indicador sospechoso, consultarlo contra fuentes de inteligencia de amenazas, priorizarlo frente a otras alertas, y decidir que tan grave es. La idea es ir sumando etapas hasta tener un flujo completo de triage y documentacion automatizada, similar a lo que hace una herramienta SOAR en un SOC real.
+Este pipeline automatiza el mismo trabajo que documente manualmente en real-phishing-incident-report y trickbot-incident-analysis-ad: tomar un indicador sospechoso, consultarlo contra fuentes de inteligencia de amenazas, priorizarlo frente a otras alertas, entender que tecnica de ataque representa, y decidir que tan grave es. La idea es ir sumando etapas hasta tener un flujo completo de triage y documentacion automatizada, similar a lo que hace una herramienta SOAR en un SOC real.
 
 ## Autor
 
