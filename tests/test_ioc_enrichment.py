@@ -32,7 +32,7 @@ def test_hash_algorithm_sha1():
 
 
 def test_hash_algorithm_sha256():
-    assert _hash_algorithm("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b85") == "sha256"
+    assert _hash_algorithm("e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855") == "sha256"
 
 
 def test_hash_algorithm_rejects_wrong_length():
