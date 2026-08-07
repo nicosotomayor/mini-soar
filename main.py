@@ -39,9 +39,14 @@ def print_banner():
     print(Fore.CYAN + Style.BRIGHT + "=== Mini-SOAR :: Pipeline completo ===")
 
 
-def enrich_if_needed(alert, priority):
+def enrich_if_needed(alert):
+    """Enriquece el IOC de la alerta sin importar la prioridad inicial.
+    Si solo enriqueciera las alertas que ya son P1/P2, una alerta P3 con
+    un IOC realmente critico nunca se consultaria contra threat intel, y
+    escalate_priority() jamas podria subirla a P1. El orden correcto es
+    triage inicial -> enriquecimiento -> recalculo de prioridad final."""
     ioc = alert.get("ioc")
-    if priority not in ENRICH_PRIORITIES or ioc in (None, "", "N/A"):
+    if ioc in (None, "", "N/A"):
         return None
     return gather_evidence(ioc)
 
@@ -77,7 +82,7 @@ def main():
         return
     ranked = triage_alerts(alerts)
     for score, priority, color, alert in ranked:
-        enrichment = enrich_if_needed(alert, priority)
+        enrichment = enrich_if_needed(alert)
         final_priority = priority
         final_color = color
         if enrichment:
