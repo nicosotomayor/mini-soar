@@ -6,6 +6,9 @@ mapeo a MITRE ATT&CK (Etapa 3), enriquecimiento de IOCs (Etapa 1)
 y generacion automatica de informes de incidentes (Etapa 4)
 para las alertas mas criticas.
 
+El flujo completo es: triage inicial -> enriquecimiento del IOC ->
+recalculo de riesgo -> prioridad final del reporte.
+
 Autor: Nicolas Sotomayor
 
 Uso:
@@ -15,9 +18,15 @@ Uso:
 import sys
 from colorama import Fore, Style, init
 
-from src.alert_triage import load_alerts, triage_alerts, PRIORITY_ACTIONS
+from src.alert_triage import (
+    load_alerts,
+    triage_alerts,
+    escalate_priority,
+    PRIORITY_ACTIONS,
+    PRIORITY_COLORS,
+)
 from src.mitre_mapper import get_techniques
-from src.ioc_enrichment import detect_ioc_type, check_virustotal, check_abuseipdb, score_verdict
+from src.ioc_enrichment import gather_evidence
 from src.report_generator import save_report
 
 init(autoreset=True)
@@ -34,27 +43,25 @@ def enrich_if_needed(alert, priority):
     ioc = alert.get("ioc")
     if priority not in ENRICH_PRIORITIES or ioc in (None, "", "N/A"):
         return None
-    ioc_type = detect_ioc_type(ioc)
-    if ioc_type == "unknown":
-        return None
-    vt_stats = check_virustotal(ioc, ioc_type)
-    abuse_data = check_abuseipdb(ioc) if ioc_type == "ip" else None
-    verdict, color = score_verdict(vt_stats, abuse_data)
-    return verdict, color
+    return gather_evidence(ioc)
 
 
 def print_report(alert, score, priority, color, enrichment):
     print(Style.BRIGHT + f"\n{alert.get('id')} - {alert.get('alert_type')}")
     print(f"  Severidad: {alert.get('severity')} | Criticidad del activo: {alert.get('asset_criticality')}")
-    print(color + Style.BRIGHT + f"  Prioridad de triage: {priority} (score {score})")
+    print(f"  Score de triage inicial: {score}")
+    print(color + Style.BRIGHT + f"  Prioridad final: {priority}")
     print(f"  Accion recomendada: {PRIORITY_ACTIONS[priority]}")
     techniques = get_techniques(alert.get("alert_type"))
     print("  Tecnicas MITRE ATT&CK:")
     for tech in techniques:
-        print(Fore.MAGENTA + f"    [{tech['id']}] {tech['name']} ({tech['tactic']})")
+        print(Fore.MAGENTA + f"    [{tech['id']}] {tech['name']} ({tech['tactic']}) | confianza: {tech['confidence']} | evidencia: {tech['evidence']}")
     if enrichment:
-        verdict, vcolor = enrichment
+        verdict = enrichment["verdict"]
+        vcolor = enrichment["color"]
         print(vcolor + Style.BRIGHT + f"  Veredicto de enriquecimiento del IOC: {verdict}")
+        if verdict == "SIN DATOS":
+            print(Fore.YELLOW + "  Nota: sin datos suficientes para confirmar reputacion. No se asume que sea benigno.")
 
 
 def main():
@@ -71,10 +78,15 @@ def main():
     ranked = triage_alerts(alerts)
     for score, priority, color, alert in ranked:
         enrichment = enrich_if_needed(alert, priority)
-        print_report(alert, score, priority, color, enrichment)
-        if priority in ENRICH_PRIORITIES:
-            report_path = save_report(alert, score, priority, PRIORITY_ACTIONS[priority], enrichment)
-            print(Fore.GREEN + f"  Informe guardado en: {report_path}")
+        final_priority = priority
+        final_color = color
+        if enrichment:
+            final_priority = escalate_priority(priority, enrichment["verdict"])
+            final_color = PRIORITY_COLORS[final_priority]
+    print_report(alert, score, final_priority, final_color, enrichment)
+    if final_priority in ENRICH_PRIORITIES:
+        report_path = save_report(alert, score, final_priority, PRIORITY_ACTIONS[final_priority], enrichment)
+        print(Fore.GREEN + f"  Informe guardado en: {report_path}")
 
 
 if __name__ == "__main__":
