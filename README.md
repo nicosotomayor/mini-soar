@@ -6,7 +6,7 @@ Pipeline de respuesta a incidentes (SOAR) construido por etapas, pensado para au
 
 Etapa 1 (completada): enriquecimiento automatico de IOCs (IPs, dominios, hashes) contra VirusTotal y AbuseIPDB, con veredicto de severidad.
 
-Etapa 2 (pendiente): triage de alertas, priorizacion automatica combinando enriquecimiento y reglas de severidad.
+Etapa 2 (completada): triage automatico de alertas tipo SIEM, priorizando en base a severidad, criticidad del activo afectado y presencia de IOCs conocidos.
 
 Etapa 3 (pendiente): mapeo automatico a tecnicas MITRE ATT&CK segun el comportamiento observado.
 
@@ -16,13 +16,17 @@ Etapa 4 (pendiente): generacion automatica de informe de incidente en Markdown o
 
 El script src/ioc_enrichment.py recibe una o varias IOCs (IP, dominio o hash) y devuelve tres cosas: el resultado de VirusTotal (detecciones maliciosas, sospechosas e inofensivas), el resultado de AbuseIPDB para IPs (score de abuso, cantidad de reportes, pais), y un veredicto final de severidad: ALTO, MEDIO o BAJO.
 
-### Instalacion
+## Etapa 2: Alert Triage
+
+El script src/alert_triage.py toma un listado de alertas tipo SIEM (por ejemplo data/sample_alerts.json), calcula un puntaje combinando severidad, criticidad del activo afectado y la presencia de un IOC conocido, y clasifica cada alerta en una prioridad de P1 (critica) a P4 (baja), sugiriendo la accion recomendada para el analista.
+
+## Instalacion
 
 git clone https://github.com/nicosotomayor/mini-soar.git
 cd mini-soar
 pip install -r requirements.txt
 
-### Configuracion
+## Configuracion
 
 Este proyecto usa APIs gratuitas de VirusTotal y AbuseIPDB. Copia .env.example a .env y completa tus propias claves (nunca subas tus claves reales a un repositorio).
 
@@ -31,7 +35,9 @@ Luego exporta las variables antes de ejecutar:
 export VT_API_KEY=tu_api_key_de_virustotal
 export ABUSEIPDB_API_KEY=tu_api_key_de_abuseipdb
 
-### Uso
+## Uso
+
+Enriquecimiento de IOCs:
 
 python src/ioc_enrichment.py 8.8.8.8 malicious-domain.com 44d88612fea8a8f36de82e1278abb02f
 
@@ -39,16 +45,32 @@ O de forma interactiva:
 
 python src/ioc_enrichment.py
 
-### Ejemplo de salida
+Triage de alertas:
+
+python src/alert_triage.py data/sample_alerts.json
+
+Si no se indica un archivo, el script usa data/sample_alerts.json por defecto.
+
+## Ejemplo de salida
+
+IOC Enrichment:
 
 IOC: 8.8.8.8 (tipo: ip)
 VirusTotal -> malicious: 0 | suspicious: 0 | harmless: 68
 AbuseIPDB -> abuse score: 0% | reports: 0 | pais: US
 Veredicto: BAJO
 
+Alert Triage:
+
+ALT-1004 - C2 Beaconing
+Severidad: critical | Criticidad del activo: critical
+IOC: 91.219.236.18
+Prioridad: P1 (score 18)
+Accion recomendada: Escalar de inmediato al equipo de respuesta a incidentes.
+
 ## Por que este proyecto
 
-Este pipeline automatiza el mismo trabajo que documente manualmente en real-phishing-incident-report y trickbot-incident-analysis-ad: tomar un indicador sospechoso, consultarlo contra fuentes de inteligencia de amenazas, y decidir que tan grave es. La idea es ir sumando etapas hasta tener un flujo completo de triage y documentacion automatizada, similar a lo que hace una herramienta SOAR en un SOC real.
+Este pipeline automatiza el mismo trabajo que documente manualmente en real-phishing-incident-report y trickbot-incident-analysis-ad: tomar un indicador sospechoso, consultarlo contra fuentes de inteligencia de amenazas, priorizarlo frente a otras alertas, y decidir que tan grave es. La idea es ir sumando etapas hasta tener un flujo completo de triage y documentacion automatizada, similar a lo que hace una herramienta SOAR en un SOC real.
 
 ## Autor
 
