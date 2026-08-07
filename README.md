@@ -34,21 +34,48 @@ El archivo main.py, en la raiz del proyecto, orquesta las cuatro etapas en un so
 
 ## Instalacion
 
-```
+Requiere Python 3.9 o superior instalado.
+
+**Linux / Kali:**
+
+```bash
 git clone https://github.com/nicosotomayor/mini-soar.git
 cd mini-soar
+python3 -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 ```
+
+**Windows (PowerShell):**
+
+```powershell
+git clone https://github.com/nicosotomayor/mini-soar.git
+cd mini-soar
+python -m venv venv
+venv\Scripts\Activate.ps1
+pip install -r requirements.txt
+```
+
+> Si PowerShell bloquea la ejecucion de scripts, corre una vez: `Set-ExecutionPolicy -Scope CurrentUser RemoteSigned`
 
 ## Configuracion
 
 Este proyecto usa APIs gratuitas de VirusTotal y AbuseIPDB. Copia .env.example a .env y completa tus propias claves (nunca subas tus claves reales a un repositorio).
 
-Luego exporta las variables antes de ejecutar:
+**Linux / Kali (bash):**
 
-```
+```bash
+cp .env.example .env
 export VT_API_KEY=tu_api_key_de_virustotal
 export ABUSEIPDB_API_KEY=tu_api_key_de_abuseipdb
+```
+
+**Windows (PowerShell):**
+
+```powershell
+copy .env.example .env
+$env:VT_API_KEY = "tu_api_key_de_virustotal"
+$env:ABUSEIPDB_API_KEY = "tu_api_key_de_abuseipdb"
 ```
 
 ## Uso
@@ -77,7 +104,7 @@ Mapeo MITRE ATT&CK por separado:
 python src/mitre_mapper.py "C2 Beaconing"
 ```
 
-Si no se indica un archivo de alertas, los scripts usan data/sample_alerts.json por defecto.
+Si no se indica un archivo de alertas, los scripts usan data/sample_alerts.json por defecto. En Windows se usa `python` y en Linux/Kali generalmente `python3`.
 
 ## Ejemplo de salida
 
