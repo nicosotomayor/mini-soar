@@ -2,9 +2,9 @@
 """
 Mini-SOAR - Orquestador principal del pipeline
 Combina las etapas del proyecto: triage de alertas (Etapa 2),
-mapeo a MITRE ATT&CK (Etapa 3) y enriquecimiento de IOCs (Etapa 1)
-para las alertas mas criticas, generando un reporte consolidado
-por cada alerta.
+mapeo a MITRE ATT&CK (Etapa 3), enriquecimiento de IOCs (Etapa 1)
+y generacion automatica de informes de incidentes (Etapa 4)
+para las alertas mas criticas.
 
 Autor: Nicolas Sotomayor
 
@@ -18,6 +18,7 @@ from colorama import Fore, Style, init
 from src.alert_triage import load_alerts, triage_alerts, PRIORITY_ACTIONS
 from src.mitre_mapper import get_techniques
 from src.ioc_enrichment import detect_ioc_type, check_virustotal, check_abuseipdb, score_verdict
+from src.report_generator import save_report
 
 init(autoreset=True)
 
@@ -71,6 +72,9 @@ def main():
     for score, priority, color, alert in ranked:
         enrichment = enrich_if_needed(alert, priority)
         print_report(alert, score, priority, color, enrichment)
+        if priority in ENRICH_PRIORITIES:
+            report_path = save_report(alert, score, priority, PRIORITY_ACTIONS[priority], enrichment)
+            print(Fore.GREEN + f"  Informe guardado en: {report_path}")
 
 
 if __name__ == "__main__":
