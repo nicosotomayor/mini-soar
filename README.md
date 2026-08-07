@@ -4,13 +4,13 @@ Pipeline de respuesta a incidentes (SOAR) construido por etapas, pensado para au
 
 ## Roadmap del proyecto
 
-Etapa 1 (completada): enriquecimiento automatico de IOCs (IPs, dominios, hashes) contra VirusTotal y AbuseIPDB, con veredicto de severidad y deteccion explicita de casos sin datos suficientes.
+Etapa 1: enriquecimiento automatico de IOCs (IPs, dominios, hashes) contra VirusTotal y AbuseIPDB, con veredicto de severidad y deteccion explicita de casos sin datos suficientes.
 
-Etapa 2 (completada): triage automatico de alertas tipo SIEM, priorizando en base a severidad, criticidad del activo afectado y presencia de un IOC valido, con recalculo de prioridad segun el resultado del enriquecimiento.
+Etapa 2: triage automatico de alertas tipo SIEM, priorizando en base a severidad, criticidad del activo afectado y presencia de un IOC valido, con recalculo de prioridad segun el resultado del enriquecimiento.
 
-Etapa 3 (completada): mapeo automatico de cada tipo de alerta a tacticas y tecnicas del framework MITRE ATT&CK, con nivel de confianza y evidencia para cada tecnica.
+Etapa 3: mapeo automatico de cada tipo de alerta a tacticas y tecnicas del framework MITRE ATT&CK, con nivel de confianza y evidencia para cada tecnica.
 
-Etapa 4 (completada): generacion automatica de informe de incidente en Markdown para cada alerta critica, incluyendo la evidencia real del enriquecimiento.
+Etapa 4: generacion automatica de informe de incidente en Markdown para cada alerta critica, incluyendo la evidencia real del enriquecimiento.
 
 ## Etapa 1: IOC Enrichment
 
