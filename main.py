@@ -83,10 +83,12 @@ def main():
         if enrichment:
             final_priority = escalate_priority(priority, enrichment["verdict"])
             final_color = PRIORITY_COLORS[final_priority]
-    print_report(alert, score, final_priority, final_color, enrichment)
-    if final_priority in ENRICH_PRIORITIES:
-        report_path = save_report(alert, score, final_priority, PRIORITY_ACTIONS[final_priority], enrichment)
-        print(Fore.GREEN + f"  Informe guardado en: {report_path}")
+
+        print_report(alert, score, final_priority, final_color, enrichment)
+
+        if final_priority in ENRICH_PRIORITIES:
+            report_path = save_report(alert, score, final_priority, PRIORITY_ACTIONS[final_priority], enrichment)
+            print(Fore.GREEN + f"  Informe guardado en: {report_path}")
 
 
 if __name__ == "__main__":
