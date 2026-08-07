@@ -10,7 +10,7 @@ Etapa 2 (completada): triage automatico de alertas tipo SIEM, priorizando en bas
 
 Etapa 3 (completada): mapeo automatico de cada tipo de alerta a tacticas y tecnicas del framework MITRE ATT&CK.
 
-Etapa 4 (pendiente): generacion automatica de informe de incidente en Markdown o PDF.
+Etapa 4 (completada): generacion automatica de informe de incidente en Markdown para cada alerta critica.
 
 ## Etapa 1: IOC Enrichment
 
@@ -24,15 +24,21 @@ El script src/alert_triage.py toma un listado de alertas tipo SIEM (por ejemplo 
 
 El script src/mitre_mapper.py asocia el tipo de alerta (por ejemplo "C2 Beaconing" o "Suspicious PowerShell") con las tacticas y tecnicas correspondientes del framework MITRE ATT&CK, dando contexto sobre el comportamiento del atacante detras de cada alerta.
 
+## Etapa 4: Generacion de Informes
+
+El modulo src/report_generator.py genera automaticamente un informe de incidente en Markdown para cada alerta de prioridad P1 o P2, consolidando el resumen de la alerta, el resultado del triage, las tecnicas MITRE ATT&CK asociadas y el veredicto de enriquecimiento del IOC. Los informes se guardan en la carpeta reports/ (excluida del control de versiones).
+
 ## Pipeline completo (main.py)
 
-El archivo main.py, en la raiz del proyecto, orquesta las tres etapas en un solo flujo: carga las alertas, las prioriza, mapea cada una a sus tecnicas MITRE ATT&CK, y enriquece automaticamente el IOC de las alertas con prioridad P1 o P2 contra VirusTotal y AbuseIPDB. El resultado es un reporte consolidado por alerta, listo para que un analista lo revise.
+El archivo main.py, en la raiz del proyecto, orquesta las cuatro etapas en un solo flujo: carga las alertas, las prioriza, mapea cada una a sus tecnicas MITRE ATT&CK, enriquece automaticamente el IOC de las alertas con prioridad P1 o P2 contra VirusTotal y AbuseIPDB, y genera un informe en Markdown para esas mismas alertas criticas. El resultado es un reporte consolidado por alerta, listo para que un analista lo revise.
 
 ## Instalacion
 
+```
 git clone https://github.com/nicosotomayor/mini-soar.git
 cd mini-soar
 pip install -r requirements.txt
+```
 
 ## Configuracion
 
@@ -40,26 +46,36 @@ Este proyecto usa APIs gratuitas de VirusTotal y AbuseIPDB. Copia .env.example a
 
 Luego exporta las variables antes de ejecutar:
 
+```
 export VT_API_KEY=tu_api_key_de_virustotal
 export ABUSEIPDB_API_KEY=tu_api_key_de_abuseipdb
+```
 
 ## Uso
 
 Pipeline completo (recomendado):
 
+```
 python main.py data/sample_alerts.json
+```
 
 Enriquecimiento de IOCs por separado:
 
+```
 python src/ioc_enrichment.py 8.8.8.8 malicious-domain.com 44d88612fea8a8f36de82e1278abb02f
+```
 
 Triage de alertas por separado:
 
+```
 python src/alert_triage.py data/sample_alerts.json
+```
 
 Mapeo MITRE ATT&CK por separado:
 
+```
 python src/mitre_mapper.py "C2 Beaconing"
+```
 
 Si no se indica un archivo de alertas, los scripts usan data/sample_alerts.json por defecto.
 
@@ -67,14 +83,17 @@ Si no se indica un archivo de alertas, los scripts usan data/sample_alerts.json 
 
 Pipeline completo (main.py):
 
+```
 ALT-1004 - C2 Beaconing
-Severidad: critical | Criticidad del activo: critical
-Prioridad de triage: P1 (score 18)
-Accion recomendada: Escalar de inmediato al equipo de respuesta a incidentes.
-Tecnicas MITRE ATT&CK:
+  Severidad: critical | Criticidad del activo: critical
+  Prioridad de triage: P1 (score 18)
+  Accion recomendada: Escalar de inmediato al equipo de respuesta a incidentes.
+  Tecnicas MITRE ATT&CK:
     [T1071] Application Layer Protocol (Command and Control)
     [T1571] Non-Standard Port (Command and Control)
-Veredicto de enriquecimiento del IOC: ALTO
+  Veredicto de enriquecimiento del IOC: ALTO
+  Informe guardado en: reports/alt_1004.md
+```
 
 ## Por que este proyecto
 
