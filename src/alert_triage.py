@@ -12,6 +12,11 @@ import json
 import sys
 from colorama import Fore, Style, init
 
+try:
+    from src.ioc_enrichment import detect_ioc_type
+except ImportError:
+    from ioc_enrichment import detect_ioc_type
+
 init(autoreset=True)
 
 DEFAULT_ALERTS_FILE = "data/sample_alerts.json"
@@ -26,6 +31,15 @@ PRIORITY_ACTIONS = {
     "P4": "Registrar y revisar en el reporte diario.",
 }
 
+PRIORITY_COLORS = {
+    "P1": Fore.RED,
+    "P2": Fore.YELLOW,
+    "P3": Fore.CYAN,
+    "P4": Fore.GREEN,
+}
+
+PRIORITY_ORDER = ["P1", "P2", "P3", "P4"]
+
 
 def load_alerts(path):
     with open(path, "r", encoding="utf-8") as f:
@@ -36,20 +50,37 @@ def score_alert(alert):
     sev = SEVERITY_WEIGHTS.get(alert.get("severity", "low"), 1)
     crit = CRITICALITY_WEIGHTS.get(alert.get("asset_criticality", "low"), 1)
     score = sev * crit
-    has_ioc = alert.get("ioc") not in (None, "", "N/A")
-    if has_ioc:
+    ioc = alert.get("ioc")
+    if ioc and detect_ioc_type(ioc) != "unknown":
         score += 2
     return score
 
 
 def classify_priority(score):
     if score >= 14:
-        return "P1", Fore.RED
-    if score >= 9:
-        return "P2", Fore.YELLOW
-    if score >= 4:
-        return "P3", Fore.CYAN
-    return "P4", Fore.GREEN
+        priority = "P1"
+    elif score >= 9:
+        priority = "P2"
+    elif score >= 4:
+        priority = "P3"
+    else:
+        priority = "P4"
+    return priority, PRIORITY_COLORS[priority]
+
+
+def escalate_priority(priority, verdict):
+    """Sube la prioridad si el enriquecimiento revela una amenaza real.
+    Nunca la baja: la ausencia de datos (SIN DATOS) no debe usarse para
+    restar urgencia a una alerta."""
+    if verdict == "CRITICO":
+        target = "P1"
+    elif verdict == "ALTO":
+        target = "P2"
+    else:
+        target = priority
+    if PRIORITY_ORDER.index(target) < PRIORITY_ORDER.index(priority):
+        return target
+    return priority
 
 
 def print_banner():
