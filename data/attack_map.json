@@ -1,0 +1,21 @@
+{
+  "Brute Force SSH": [
+    {"id": "T1110", "name": "Brute Force", "tactic": "Credential Access", "confidence": "high", "evidence": "repeated_auth_failures"},
+    {"id": "T1021.004", "name": "Remote Services: SSH", "tactic": "Lateral Movement", "confidence": "medium", "evidence": "ssh_service_targeted"}
+  ],
+  "Phishing Email": [
+    {"id": "T1566", "name": "Phishing", "tactic": "Initial Access", "confidence": "high", "evidence": "phishing_email"},
+    {"id": "T1204", "name": "User Execution", "tactic": "Execution", "confidence": "medium", "evidence": "malware_execution_suspected"},
+    {"id": "T1055", "name": "Process Injection", "tactic": "Defense Evasion", "confidence": "low", "evidence": "not_confirmed_by_alert"}
+  ],
+  "Failed Login": [
+    {"id": "T1110", "name": "Brute Force", "tactic": "Credential Access", "confidence": "medium", "evidence": "failed_login_attempts"}
+  ],
+  "Data Exfiltration": [
+    {"id": "T1041", "name": "Exfiltration Over C2 Channel", "tactic": "Exfiltration", "confidence": "medium", "evidence": "outbound_data_transfer_detected"}
+  ],
+  "Suspicious PowerShell": [
+    {"id": "T1059.001", "name": "PowerShell", "tactic": "Execution", "confidence": "high", "evidence": "powershell_execution_detected"},
+    {"id": "T1027", "name": "Obfuscated Files or Information", "tactic": "Defense Evasion", "confidence": "medium", "evidence": "possible_obfuscation_patterns"}
+  ]
+}
