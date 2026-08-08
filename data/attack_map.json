@@ -5,6 +5,16 @@
   ],
   "Phishing Email": [
     {"id": "T1566", "name": "Phishing", "tactic": "Initial Access", "confidence": "high", "evidence": "phishing_email"},
+    {"id": "T1204", "name": "User Execution", "tactic": "Execution", "confidence": "low", "evidence": "no_confirmed_execution"}
+  ],
+  "Port Scan": [
+    {"id": "T1046", "name": "Network Service Discovery", "tactic": "Discovery", "confidence": "high", "evidence": "port_scan_detected"}
+  ],
+  "C2 Beaconing": [
+    {"id": "T1071", "name": "Application Layer Protocol", "tactic": "Command and Control", "confidence": "high", "evidence": "beacon_pattern_detected"},
+    {"id": "T1571", "name": "Non-Standard Port", "tactic": "Command and Control", "confidence": "medium", "evidence": "uncommon_port_usage"}
+  ],
+  "Malware Detected": [
     {"id": "T1204", "name": "User Execution", "tactic": "Execution", "confidence": "medium", "evidence": "malware_execution_suspected"},
     {"id": "T1055", "name": "Process Injection", "tactic": "Defense Evasion", "confidence": "low", "evidence": "not_confirmed_by_alert"}
   ],
