@@ -9,13 +9,21 @@ para las alertas mas criticas.
 El flujo completo es: triage inicial -> enriquecimiento del IOC ->
 recalculo de riesgo -> prioridad final del reporte.
 
+La salida del pipeline usa el modulo logging (en vez de print directo)
+para poder controlar el nivel de detalle (INFO/WARNING/ERROR) con la
+variable de entorno LOG_LEVEL, sin perder el formato coloreado pensado
+para la terminal.
+
 Autor: Nicolas Sotomayor
 
 Uso:
     python main.py [ruta_al_archivo_de_alertas.json]
 """
 
+import logging
+import os
 import sys
+
 from colorama import Fore, Style, init
 
 from src.alert_triage import (
@@ -31,12 +39,18 @@ from src.report_generator import save_report
 
 init(autoreset=True)
 
+logging.basicConfig(
+    level=os.environ.get("LOG_LEVEL", "INFO").upper(),
+    format="%(message)s",
+)
+logger = logging.getLogger("mini_soar")
+
 DEFAULT_ALERTS_FILE = "data/sample_alerts.json"
 ENRICH_PRIORITIES = {"P1", "P2"}
 
 
 def print_banner():
-    print(Fore.CYAN + Style.BRIGHT + "=== Mini-SOAR :: Pipeline completo ===")
+    logger.info(Fore.CYAN + Style.BRIGHT + "=== Mini-SOAR :: Pipeline completo ===")
 
 
 def enrich_if_needed(alert):
@@ -52,21 +66,21 @@ def enrich_if_needed(alert):
 
 
 def print_report(alert, score, priority, color, enrichment):
-    print(Style.BRIGHT + f"\n{alert.get('id')} - {alert.get('alert_type')}")
-    print(f"  Severidad: {alert.get('severity')} | Criticidad del activo: {alert.get('asset_criticality')}")
-    print(f"  Score de triage inicial: {score}")
-    print(color + Style.BRIGHT + f"  Prioridad final: {priority}")
-    print(f"  Accion recomendada: {PRIORITY_ACTIONS[priority]}")
+    logger.info(Style.BRIGHT + f"\n{alert.get('id')} - {alert.get('alert_type')}")
+    logger.info(f"  Severidad: {alert.get('severity')} | Criticidad del activo: {alert.get('asset_criticality')}")
+    logger.info(f"  Score de triage inicial: {score}")
+    logger.info(color + Style.BRIGHT + f"  Prioridad final: {priority}")
+    logger.info(f"  Accion recomendada: {PRIORITY_ACTIONS[priority]}")
     techniques = get_techniques(alert.get("alert_type"))
-    print("  Tecnicas MITRE ATT&CK:")
+    logger.info("  Tecnicas MITRE ATT&CK:")
     for tech in techniques:
-        print(Fore.MAGENTA + f"    [{tech['id']}] {tech['name']} ({tech['tactic']}) | confianza: {tech['confidence']} | evidencia: {tech['evidence']}")
+        logger.info(Fore.MAGENTA + f"    [{tech['id']}] {tech['name']} ({tech['tactic']}) | confianza: {tech['confidence']} | evidencia: {tech['evidence']}")
     if enrichment:
         verdict = enrichment["verdict"]
         vcolor = enrichment["color"]
-        print(vcolor + Style.BRIGHT + f"  Veredicto de enriquecimiento del IOC: {verdict}")
+        logger.info(vcolor + Style.BRIGHT + f"  Veredicto de enriquecimiento del IOC: {verdict}")
         if verdict == "SIN DATOS":
-            print(Fore.YELLOW + "  Nota: sin datos suficientes para confirmar reputacion. No se asume que sea benigno.")
+            logger.warning(Fore.YELLOW + "  Nota: sin datos suficientes para confirmar reputacion. No se asume que sea benigno.")
 
 
 def main():
@@ -75,10 +89,10 @@ def main():
     try:
         alerts = load_alerts(path)
     except FileNotFoundError:
-        print(Fore.RED + f"No se encontro el archivo de alertas: {path}")
+        logger.error(Fore.RED + f"No se encontro el archivo de alertas: {path}")
         return
     if not alerts:
-        print(Fore.RED + "No hay alertas para procesar.")
+        logger.error(Fore.RED + "No hay alertas para procesar.")
         return
     ranked = triage_alerts(alerts)
     for score, priority, color, alert in ranked:
@@ -93,7 +107,7 @@ def main():
 
         if final_priority in ENRICH_PRIORITIES:
             report_path = save_report(alert, score, final_priority, PRIORITY_ACTIONS[final_priority], enrichment)
-            print(Fore.GREEN + f"  Informe guardado en: {report_path}")
+            logger.info(Fore.GREEN + f"  Informe guardado en: {report_path}")
 
 
 if __name__ == "__main__":
