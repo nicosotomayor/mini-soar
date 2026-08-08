@@ -1,5 +1,7 @@
 # mini-soar
 
+![Tests](https://github.com/nicosotomayor/mini-soar/actions/workflows/tests.yml/badge.svg)
+
 Pipeline de respuesta a incidentes (SOAR) construido por etapas, pensado para automatizar el trabajo manual de un analista SOC Nivel 1: enriquecer indicadores, priorizar alertas, mapear tecnicas de ataque y documentar el resultado.
 
 ## Roadmap del proyecto
@@ -126,6 +128,47 @@ Tecnicas MITRE ATT&CK:
 Veredicto de enriquecimiento del IOC: ALTO
 Informe guardado en: reports/alt_1004.md
 ```
+
+## Ejemplo de informe generado (.md)
+
+Cuando una alerta llega a prioridad final P1 o P2, el pipeline guarda automaticamente un informe como este en reports/ (formato real generado por src/report_generator.py):
+
+```markdown
+# Informe de Incidente - ALT-1004
+
+**Generado:** 2026-08-07 14:32:10
+
+## Resumen de la alerta
+
+- **Tipo:** C2 Beaconing
+- **Severidad:** critical
+- **Criticidad del activo:** critical
+- **IOC:** 185.220.101.45
+
+## Triage
+
+- **Score de triage inicial:** 18
+- **Prioridad final:** P1
+- **Accion recomendada:** Escalar de inmediato al equipo de respuesta a incidentes.
+
+## Tecnicas MITRE ATT&CK asociadas
+
+- **T1071** - Application Layer Protocol (Tactica: Command and Control) | confianza: high | evidencia: beacon_pattern_detected
+- **T1571** - Non-Standard Port (Tactica: Command and Control) | confianza: medium | evidencia: uncommon_port_usage
+
+## Enriquecimiento de IOC
+
+- **Indicador analizado:** 185.220.101.45 (ip)
+- **Veredicto:** ALTO
+- **Consultado:** 2026-08-07 14:32:09
+- **VirusTotal:** malicioso: 6, sospechoso: 2
+- **AbuseIPDB:** confianza de abuso: 78%
+
+---
+*Informe generado automaticamente por Mini-SOAR.*
+```
+
+Nota: los valores de VirusTotal/AbuseIPDB de este ejemplo son ilustrativos; el informe real siempre refleja la respuesta efectiva de las APIs en el momento de la consulta.
 
 ## Por que este proyecto
 
